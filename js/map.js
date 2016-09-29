@@ -119,6 +119,7 @@ var show_favs=function(value) {
 
 		  //create a new Place service object
 		  service = new google.maps.places.PlacesService(map);
+		 // service.nearbySearch(typeRequest, callback);
 		  service.textSearch(typeRequest, callback);
 
 		  
@@ -127,7 +128,15 @@ var show_favs=function(value) {
 			  counter=0;
 			  var check=0;
 			for (var i = 0; i < results.length; i++) {
+				if(results[i].geometry.location)
+				{
 			   var place = results[i].geometry.location;
+				}
+				else 
+				{
+					var place= map.getCenter();
+				}
+				
 			   if (results[i].opening_hours)
 			   {
 			   var name= results[i].name;
@@ -300,12 +309,13 @@ function createMarker_fav(place,name,open_now,rating,distance) {
 			// map zooms out suddenly some times this avoids it
 		zoomChangeBoundsListener = 	google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) { 
         if (this.getZoom()< 10){
-            this.setZoom(12);
+            this.setZoom(12); // if zoom out happens when bounds change zoom in again 
+			this.setCenter(your_position); // so that even when map redirects when we reset zoom , center doesnt change
 		
         }
 });
 
-setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 5000);  // remove the listener after 2 seconds
+setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 10000);  // remove the listener after 10 seconds
 			
 			marker.addListener('click', function() {
 			closeInfoWindows(); //close all other info windows
@@ -330,7 +340,6 @@ function hide_Allmarkers() {
 
 	 //marker icons
 	 var generic_icon= "images/generic-marker.png";
-	 var store_icon="images/shops-icon1.png";
 	 
 	 //create a general marker for the zoomed view
 	  marker = new google.maps.Marker({
@@ -355,17 +364,46 @@ var position;
 
 	 function geocodeAddress(geocoder, resultsMap) {
         var address = document.getElementById('find').value;
+		
+		
+		//to call ajax request for wikipedia links 
+		var address_split=address.split(',');
+		var length=address_split.length;
+		var search_string="";
+		for(var i=0; i < length; i++)
+		{
+			search_string+=address_split[i]+'|';
+		}
+		
+		console.log(search_string);
+		// var wiki_url='https://en.wikipedia.org/w/api.php?action=opensearch&search=&prop=revisions&rvprop=content&format=json';
+		// $.ajax( {
+    // url: remoteUrlWithOrigin,
+    // data: queryData,
+    // dataType: 'jsonp',
+    // type: 'POST',
+    // success: function(data) {
+    // console.log(data);
+    // }
+// } );
+
+
+
         geocoder.geocode({'address': address}, function(results, status) {
           if (status === 'OK') {
-            resultsMap.setCenter(results[0].geometry.location);
+			  genericSet=0;
+            
 			resultsMap.setZoom(15);
 			
 			//place the marker on the entered location
+			your_position= results[0].geometry.location;
+			resultsMap.setCenter(results[0].geometry.location);
 			position= results[0].geometry.location;
 			console.log(position);
 			hide_Allmarkers();
 			updateMarker(position,resultsMap);
-			genericSet=1;
+			
+			// genericSet=1; // moving genericSet to update marker  
           } 
 		  else {
             alert('Geocode was not successful for the following reason: ' + status);
@@ -379,9 +417,10 @@ var position;
 		//function to update the position of generic marker
 	updateMarker= function(position,map)
 	{
-           marker.setPosition(position),
-			marker.setMap(map) 
-			bounds.extend(marker.position)
+           marker.setPosition(position);
+			marker.setMap(map) ;
+			bounds.extend(marker.position);
+			genericSet=1;
 	}
 	
 	
@@ -431,7 +470,7 @@ var position;
           if (status !== 'OK') {
             alert('Error was: ' + status);
           } else {
-			  
+			  console.log(response);
 			  if(response.rows[0].elements[0].status=="OK") //cross check so that there are no zero_results 
 			  {
 			var distance= response.rows[0].elements[0].distance.value; //distance from the origin
