@@ -1,0 +1,60 @@
+<!Doctype html>
+<html lang="en">
+<head>
+<title> NeighbourHood Map-</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="container">
+<aside id="side-bar" class="side-bar">
+<div class="top-bar">
+<div class="input-holder"><input type="text" placeholder="Enter the place" class="input" id="find" data-bind="textInput: model.place ,valueUpdate: input">
+<button id="zoom-btn" >&#x27f6;</button>
+</div>
+<p class="filter-para"> Select The filter :
+<br>
+<p class=filter-para">
+<!--   <input type="radio" name="filter" value="none" data-bind="checked: selectedFilter, click: selected" > None<br>
+  <input type="radio" name="filter" value="shops" data-bind="checked: selectedFilter, click: selected" > Shops<br>
+  <input type="radio" name="filter" value="hotel" data-bind="checked: selectedFilter, click: selected" > Hotel<br> -->
+<input type="text" placeholder="Enter the Filter" class= "filter-input"  data-bind="textInput: model.filter">
+<!-- SVG image for the filter -->
+<svg width="32.000000pt" height="23.000000pt" viewBox="0 0 32.000000 23.000000"
+ preserveAspectRatio="xMidYMid meet" class="filter"  data-bind="event: { mouseover: enableDetails, mouseout: disableDetails(15000) }">
+<metadata>
+Created by potrace 1.10, written by Peter Selinger 2001-2011
+</metadata>
+<g transform="translate(0.000000,32.000000) scale(0.100000,-0.100000)"
+fill="#000000" stroke="none">
+<path d="M109 191 c30 -36 41 -58 41 -83 0 -32 14 -58 32 -58 4 0 8 23 8 52 0
+48 4 56 42 95 l42 43 -103 0 -103 0 41 -49z"/>
+</g>
+</svg>
+
+<ul data-bind="visible: filterShow,event: { mouseover: enableDetails, mouseout: disableDetails(500) }" class="filter-list">
+<li>Shops</li>
+<li>Hotels</li>
+<li>Highways</li>
+</ul>
+
+</p>
+</p>
+
+</div>
+</aside>
+<main id="map" ></main>
+</div>
+
+
+<script src="js/knockout-3.2.0.js" ></script>
+<script src="js/jquery-3.1.1.min.js" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChMfhYvEkhaT1ommxna0fUPuEZE4_BU9Q&callback=initMap&libraries=places" async defer></script>
+<script src="js/map.js" async defer></script>
+<!-- <script async defer>
+//map function
+	
+</script> -->
+</body>
+</html>

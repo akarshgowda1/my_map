@@ -1,0 +1,82 @@
+* {
+	
+	box-sizing: border-box;
+	font-size: 16px;
+}
+
+.container {
+	width: 100%;
+	display: flex;
+	flex-wrap: no-wrap;
+}
+
+.top-bar {
+	
+	width:100%;
+	background-color: #ccc;
+	height: 50px;
+}
+
+.input {
+	margin: 10px;
+	margin-right:0;
+	width: 90%;
+}
+
+.input-holder {
+	width: 100%;
+	display: flex;
+}
+
+#zoom-btn {
+	
+	opacity: 0.5;
+	width: 10%;
+	height: 10%;
+	margin-top: 10px;
+}
+
+#zoom-btn: hover {
+	
+	opacity: 1.0;
+	
+}
+
+#map {
+	
+	width: 75%;
+	height:500px;
+}
+
+#side-bar {
+	
+	background-color: #fff;
+	width: 25%;
+	height: 500px;
+}
+
+.filter-btn {
+	
+	background: blue;
+	color: white;
+	
+}
+
+.filter-btn:hover {
+	
+	background: white;
+	color: blue;
+	transform: scale(1.5,1.5);
+	
+}
+
+
+
+
+
+#map-error {
+	display: none;
+	width: 80%;
+	margin : 0 auto;
+	
+}
