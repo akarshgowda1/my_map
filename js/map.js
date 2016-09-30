@@ -218,11 +218,10 @@ console.log($(this).text());
 var value=$(this).text();
 var setter= set(value);
 console.log(value);
-if(setter)
-{
+
 hide_Allmarkers(); //hide previous markers
 show_markers(value);// show the current markers
-}
+
 });
 
 
@@ -295,12 +294,7 @@ function createMarker_fav(place,name,open_now,rating,distance) {
             '</div>'+
             '</div>';
 
-			closeInfoWindows = function() {
-				for(var i=0; i< infoWindows.length ; i++)
-				{
-					infoWindows[i].close();
-				}
-			}
+			closeInfoWindows() ;
 			
  var infowindow = new google.maps.InfoWindow({
           content: contentString
@@ -318,7 +312,7 @@ function createMarker_fav(place,name,open_now,rating,distance) {
 		zoomChangeBoundsListener = 	google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) { 
         if (this.getZoom()< 10){
             this.setZoom(12); // if zoom out happens when bounds change zoom in again 
-			this.setCenter(your_position); // so that even when map redirects when we reset zoom , center doesnt change
+			this.setCenter(position); // so that even when map redirects when we reset zoom , center doesnt change
 		
         }
 });
@@ -350,7 +344,7 @@ function hide_Allmarkers() {
 	 var generic_icon= "images/generic-marker.png";
 	 
 	 //create a general marker for the zoomed view
-	  marker = new google.maps.Marker({
+	  generic_marker = new google.maps.Marker({
 		  icon: generic_icon,
 		  animation: google.maps.Animation.DROP
 	  });
@@ -368,7 +362,7 @@ function hide_Allmarkers() {
           geocodeAddress(geocoder, map);
 	 });
 	
-var position;
+var position; // global , generic markers position
 
 	 function geocodeAddress(geocoder, resultsMap) {
         var address = document.getElementById('find').value;
@@ -378,23 +372,49 @@ var position;
 		var address_split=address.split(',');
 		var length=address_split.length;
 		var search_string="";
-		for(var i=0; i < length; i++)
-		{
-			search_string+=address_split[i]+'|';
-		}
+		var wiki_search=0;
+	
+		var content_string="<div><strong>Wiki Links About your Search </strong>";
+		var content_substring="";
 		
-		console.log(search_string);
-		// var wiki_url='https://en.wikipedia.org/w/api.php?action=opensearch&search=&prop=revisions&rvprop=content&format=json';
-		// $.ajax( {
-    // url: remoteUrlWithOrigin,
-    // data: queryData,
-    // dataType: 'jsonp',
-    // type: 'POST',
-    // success: function(data) {
-    // console.log(data);
-    // }
-// } );
-
+		console.log(address_split);
+		
+			var wiki_timeout= setTimeout(function(){
+			var error_string="Sorry Could Not Load Please Try Again";
+			setGenericWindow(error_string);	
+		},5000); // ajax doesnt have an error method hence we use time out
+		
+		for(var i=0 ;i < length; i++)
+		{
+		var wiki_url='https://en.wikipedia.org/w/api.php?action=opensearch&search='+address_split[i]+'&profile=fuzzy&limit=3&format=json';
+		
+		// ajax call
+		
+		$.ajax( {
+    url: wiki_url,
+    dataType: 'jsonp',
+    type: 'POST',
+} ).done( function(data) {
+	clearTimeout(wiki_timeout);
+    console.log(data);
+	content_substring+='<div><h3>'+data[0]+'</h3><div id="street-view"></div><ul>';
+	for(var k=0;k< data[3].length; k++)
+	{
+	content_substring+= '<li><a href='+data[3][k]+'>'+data[1][k]+'</a></li>';
+	}
+	content_substring+='</ul>';
+	wiki_search+=1;
+	if(wiki_search==length) // create final list of links
+	{
+		content_string+=content_substring;
+		content_string+='</div>';
+		// console.log(content_string);
+		setGenericWindow(content_string); // function to set the content of generic markers infowindow
+	}
+ 
+    });
+	}
+		
 
 
         geocoder.geocode({'address': address}, function(results, status) {
@@ -402,15 +422,13 @@ var position;
 			  genericSet=0;
             
 			resultsMap.setZoom(15);
-			
 			//place the marker on the entered location
-			your_position= results[0].geometry.location;
 			resultsMap.setCenter(results[0].geometry.location);
 			position= results[0].geometry.location;
 			console.log(position);
+			closeInfoWindows();
 			hide_Allmarkers();
 			updateMarker(position,resultsMap);
-			
 			// genericSet=1; // moving genericSet to update marker  
           } 
 		  else {
@@ -422,16 +440,76 @@ var position;
 		place("");
       }
 	  
+	  
+	  setGenericWindow=function(content_string)
+	  {
+		 	 // panorama = new google.maps.StreetViewPanorama(
+            // document.getElementById('street-view'),
+            // {
+              // position: generic_marker.position,
+              // pov: {heading: 165, pitch: 0},
+              // zoom: 1
+            // });
+			
+		  // infowindow= new google.maps.InfoWindow({
+				// content: content_string
+			// });
+			
+			infowindow= new google.maps.InfoWindow(
+			{
+				content: content_string
+			});
+			// var streetViewService = new google.maps.StreetViewService();
+			// var radius = 150;
+		  
+			// function getStreetView(data, status) {
+				
+            // if (status == google.maps.StreetViewStatus.OK) {
+              // var nearStreetViewLocation = data.location.latLng;
+			  // var heading = google.maps.geometry.spherical.computeHeading(
+                // nearStreetViewLocation, generic_marker.position);
+              // // var heading = google.maps.geometry.spherical.computeHeading(
+                // // nearStreetViewLocation, marker.position);
+                // infowindow.setContent( '</div><div id="pano"></div>'+content_string);
+                // var panoramaOptions = {
+                  // position: nearStreetViewLocation,
+                  // pov: {
+                    // heading: heading,
+                    // pitch: 30
+                  // }
+                // };
+              // var panorama = new google.maps.StreetViewPanorama(
+                // document.getElementById('pano'), panoramaOptions);
+            // } else {
+              // infowindow.setContent('<div>No Street View Found</div>'+content_string);
+            // }
+          // }
+		  // streetViewService.getPanoramaByLocation(position, radius, getStreetView);
+			infoWindows.push(infowindow);
+	  }
+	  
 		//function to update the position of generic marker
 	updateMarker= function(position,map)
 	{
-           marker.setPosition(position);
-			marker.setMap(map) ;
-			bounds.extend(marker.position);
+           generic_marker.setPosition(position);
+			generic_marker.setMap(map) ;
+			bounds.extend(generic_marker.position);
 			genericSet=1;
+			generic_marker.addListener('click',
+			function(){
+	
+				infowindow.open(map, generic_marker);
+				// bounds.extend(infowindow);
+			});
 	}
 	
+	closeInfoWindows= function() {
 	
+				for(var i=0; i< infoWindows.length ; i++)
+				{
+					infoWindows[i].close();
+				}
+	}
 	
 	//adding distance matrix
 	// distance_time= function(marker_position,marker){
@@ -494,6 +572,7 @@ var position;
 		  console.log(marker_position,name,open_now,rating,distance,done);
 	});
 	
+	
 	// if(check && !counter){
 		// alert('no  '+  name  +'  found');
 	// }
@@ -504,7 +583,9 @@ var position;
 	 // google.maps.event.addDomListener(window, 'load', initialize);
  }
 	
-
+$('#map').on('error',function(e){
+	console.log("error");
+});
 	
 //function to allow a selection (filter or favourite) only once.	
 var prev="";
@@ -515,9 +596,9 @@ set= function(value)
 	return set;
 }
 	
-
 	
 };
+
 
 
  ko.applyBindings(new myViewModel());
