@@ -1,7 +1,7 @@
 var model= {	
 	filter_list: ko.observableArray([{filter:'restaurant'},{filter:'hospital'},{filter:'atm'},{filter:'cafe'}]),
 	fav_list: ko.observableArray([{fav:'Dominos'},{fav:'Barista'},{fav:'pizza'},{fav:'ice cream'}]),
-	 distance: ko.observableArray([{value: 500},{value: 1000},{value: 5000},{value: 10000}]),
+	 distance: ko.observableArray([{value: 500,distance:'0.5kms'},{value: 1000,distance: '1 km'},{value: 5000,distance: '5kms'},{value: 10000,distance: '10kms'}]),
 	 check: ko.observable(1000)
 	
 };
@@ -17,7 +17,7 @@ var myViewModel =function (){
 	show_filter= ko.observable(false);
 	show_fav= ko.observable(false);
 	place= ko.observable("");
-	custom_fav= ko.observable("");
+	custom_fav= ko.observable(null);
 	var counter=0; // counter to count the number of places matched within specified distance
 
 	
@@ -232,26 +232,34 @@ show_markers(value);// show the current markers
 $("#fav-list").on('click','li', function() {
 var value=$(this).text();
 var setter= set(value);
-if(setter)
-{
+// if(setter)
+// {
 hide_Allmarkers(); //hide previous markers
 show_favs(value);// show the current markers
-}
+// }
 });
 
 
 $("#fav-list").on('click','button',function() {
-var value= custom_fav();
-console.log(value);
-var setter= set(value);
-if(setter)
+var fav_value= custom_fav();
+console.log(fav_value);
+var setter= set(fav_value);
+ if(fav_value==null || fav_value.length==0)
+{
+	window.alert("Enter what to search first");
+}
+else 
 {
 	hide_Allmarkers(); //hide previous markers
-	show_favs(value)
+	show_favs(fav_value);
 }
 
 });
 
+
+$("#fav-list").on('click','.distance-radio',function(){
+	console.log(model.check(),"hi");
+});
 //function to create marker
 function createMarker(place,value) {
 	var icon="images/"+value+".png";//set icon based on the filter
@@ -470,12 +478,12 @@ var position;
           if (status !== 'OK') {
             alert('Error was: ' + status);
           } else {
-			  console.log(response);
+	
 			  if(response.rows[0].elements[0].status=="OK") //cross check so that there are no zero_results 
 			  {
 			var distance= response.rows[0].elements[0].distance.value; //distance from the origin
 			// var timeToDrive=response.rows[0].elements[0].distance.value
-			(distance < 5000)? done= true : done=false;
+			(distance < model.check())? done= true : done=false;
 			if(done)
 			{
 				// counter+=1;
@@ -483,6 +491,7 @@ var position;
 			}
 		  }
 		  }
+		  console.log(marker_position,name,open_now,rating,distance,done);
 	});
 	
 	// if(check && !counter){
@@ -506,6 +515,7 @@ set= function(value)
 	return set;
 }
 	
+
 	
 };
 

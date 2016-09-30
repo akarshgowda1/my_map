@@ -22,9 +22,6 @@
 <ul class="list-filter" data-bind="foreach: model.filter_list">
 <li data-bind="text: filter" class="filter_selected" ></li>
 </ul>
-<!-- <div id="distance-filter" data-bind="foreach: model.distance">
-<p ><input type="radio" value="value" name="distance" data-bind="checked: model.check"> <span data-bind="text:model.check"></span></p>
-</div> -->
 </div>
 
 <div id="fav-list" data-bind="visible: show_fav">
@@ -32,12 +29,9 @@
 <li data-bind="text: fav" class="fav_select"></li>
 </ul>
 <p><input id="custom-filter" data-bind="textInput: custom_fav" placeholder="Search favourite"><button id="custom-fav-btn">Filter</button></p> 
+<div id="distance-filter" data-bind="foreach: model.distance">
+<p><input type="radio" name="distance" class="distance-radio" data-bind="checked: model.check, checkedValue: value"> <span data-bind="text:distance"></span></p>
 </div>
-
-
-
-
-<div id="fav-list">
 </div>
 
 </aside>
