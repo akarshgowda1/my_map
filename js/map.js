@@ -18,7 +18,31 @@ var myViewModel =function (){
 	show_fav= ko.observable(false);
 	place= ko.observable("");
 	custom_fav= ko.observable(null);
+	fav_selected= ko.observable("None");
+	place_set=ko.observable(false);
+	show_distance=ko.observable(false);
 	var counter=0; // counter to count the number of places matched within specified distance
+
+	
+	//function that makes the search  items selected appear
+	toggle_selected= function() {
+		if(place_set() )
+		{
+			show_fav(false);
+		
+		}
+		else 
+		{
+			place_set(true);
+			
+		}
+	}
+	
+		if(place().length==0)
+{
+	place_set(false);
+}
+
 
 	
 	/* function that makes the list of  favourites when the favourite button is clicked*/
@@ -26,11 +50,13 @@ var myViewModel =function (){
 		if( show_fav() )
 		{
 			show_fav(false);
+			show_distance(false);
 		}
 		else 
 		{
 			show_filter(false);
 			show_fav(true);
+			show_distance(true);
 		}
 	}
 	
@@ -39,11 +65,13 @@ var myViewModel =function (){
 		if( show_filter() )
 		{
 			show_filter(false);
+			show_distance(false);
 		}
 		else 
 		{
 			show_filter(true);
 			show_fav(false);
+			show_distance(false);
 		}
 	}
 	
@@ -58,7 +86,7 @@ var myViewModel =function (){
 		// create a new map object
 		map= new google.maps.Map(document.getElementById('map'),{
 			center:{lat: 12.2958,lng: 76.6394},
-			zoom:8
+			zoom:8,
 		});
 		
 			// set boundaries
@@ -196,18 +224,18 @@ var show_favs=function(value) {
 	
 //double click to zoom if zoomed out or zoom out if zoomed in
 // testing use if necessary
-var zoom_lock=1;
-$('#map').dblclick(function() {
-	if(zoom_lock)
-	{
-		map.setZoom(15);
-		zoom_lock=0;
-	}
-	else{
-		map.setZoom(12);
-		zoom_lock=1;
-	}
-});
+// var zoom_lock=1;
+// $('#map').dblclick(function() {
+	// if(zoom_lock)
+	// {
+		// map.setZoom(15);
+		// zoom_lock=0;
+	// }
+	// else{
+		// map.setZoom(12);
+		// zoom_lock=1;
+	// }
+// });
 
 	
 	
@@ -216,6 +244,7 @@ $('#map').dblclick(function() {
 $("#filter-list").on('click','li', function() {
 console.log($(this).text());
 var value=$(this).text();
+fav_selected(value);
 var setter= set(value);
 console.log(value);
 
@@ -231,6 +260,7 @@ show_markers(value);// show the current markers
 $("#fav-list").on('click','li', function() {
 var value=$(this).text();
 var setter= set(value);
+fav_selected(value);
 // if(setter)
 // {
 hide_Allmarkers(); //hide previous markers
@@ -239,10 +269,12 @@ show_favs(value);// show the current markers
 });
 
 
-$("#fav-list").on('click','button',function() {
+// $("#fav-list").on('click','button',function() {
+$('#custom-fav-btn').click(function(){
 var fav_value= custom_fav();
 console.log(fav_value);
 var setter= set(fav_value);
+fav_selected(fav_value);
  if(fav_value==null || fav_value.length==0)
 {
 	window.alert("Enter what to search first");
@@ -264,11 +296,24 @@ function createMarker(place,value) {
 	var icon="images/"+value+".png";//set icon based on the filter
         var placeLoc = place.geometry.location;
        var marker = new google.maps.Marker({
+		  title: value,
           map: map,
           position: place.geometry.location,
 		  icon : icon
         });
 		markers.push(marker);
+		
+		var infowindow=new google.maps.InfoWindow({
+			content: marker.title
+		});
+		infoWindows.push(infowindow);
+		
+		marker.addListener('click',function(){
+			closeInfoWindows();
+		marker.setAnimation(google.maps.Animation.BOUNCE);
+			setTimeout(function(){marker.setAnimation(null)} , 2000); // bounce for 2 seconds
+			infowindow.open(map,marker);
+		});
 }
 
 	
@@ -359,7 +404,11 @@ function hide_Allmarkers() {
 	 var geocoder = new google.maps.Geocoder();
 	
 	 document.getElementById('zoom-btn').addEventListener('click', function() {
+		 fav_selected("None");
+		 custom_fav("");
+		 model.check(1000);
           geocodeAddress(geocoder, map);
+		  
 	 });
 	
 var position; // global , generic markers position
@@ -374,7 +423,7 @@ var position; // global , generic markers position
 		var search_string="";
 		var wiki_search=0;
 	
-		var content_string="<div><strong>Wiki Links About your Search </strong>";
+		var content_string='<div><div id="pano" style="height:100px"> </div><strong>Wiki Links About your Search </strong>';
 		var content_substring="";
 		
 		console.log(address_split);
@@ -395,22 +444,35 @@ var position; // global , generic markers position
     dataType: 'jsonp',
     type: 'POST',
 } ).done( function(data) {
+	
 	clearTimeout(wiki_timeout);
     console.log(data);
 	content_substring+='<div><h3>'+data[0]+'</h3><div id="street-view"></div><ul>';
+	if(data[3].length)
+	{
 	for(var k=0;k< data[3].length; k++)
 	{
-	content_substring+= '<li><a href='+data[3][k]+'>'+data[1][k]+'</a></li>';
+	content_substring+= '<li><a href='+data[3][k]+' target="_blank">'+data[1][k]+'</a></li>'; // open link in a new tab
+	}
+	}
+	else 
+	{
+		content_substring+= '<li>No Related Links Found</li>';
 	}
 	content_substring+='</ul>';
 	wiki_search+=1;
-	if(wiki_search==length) // create final list of links
+	if(wiki_search==length ) // create final list of links
 	{
+		
 		content_string+=content_substring;
 		content_string+='</div>';
-		// console.log(content_string);
+		// console.log(content_string)		
+  		
 		setGenericWindow(content_string); // function to set the content of generic markers infowindow
+		
+		
 	}
+
  
     });
 	}
@@ -436,72 +498,92 @@ var position; // global , generic markers position
           }
         });
 		
-		//clear the input box when button is clicked
-		place("");
+// set the  to the address
+		place(address);
+		
+		
       }
 	  
 	  
 	  setGenericWindow=function(content_string)
 	  {
-		 	 // panorama = new google.maps.StreetViewPanorama(
-            // document.getElementById('street-view'),
-            // {
-              // position: generic_marker.position,
-              // pov: {heading: 165, pitch: 0},
-              // zoom: 1
-            // });
-			
-		  // infowindow= new google.maps.InfoWindow({
-				// content: content_string
-			// });
-			
-			infowindow= new google.maps.InfoWindow(
-			{
-				content: content_string
-			});
-			// var streetViewService = new google.maps.StreetViewService();
-			// var radius = 150;
-		  
-			// function getStreetView(data, status) {
+		 	
+		
+		  infowindow= new google.maps.InfoWindow();
+		  infowindow.setContent(content_string);
+		  infowindow.marker = generic_marker;
 				
-            // if (status == google.maps.StreetViewStatus.OK) {
-              // var nearStreetViewLocation = data.location.latLng;
-			  // var heading = google.maps.geometry.spherical.computeHeading(
-                // nearStreetViewLocation, generic_marker.position);
-              // // var heading = google.maps.geometry.spherical.computeHeading(
-                // // nearStreetViewLocation, marker.position);
-                // infowindow.setContent( '</div><div id="pano"></div>'+content_string);
-                // var panoramaOptions = {
-                  // position: nearStreetViewLocation,
-                  // pov: {
-                    // heading: heading,
-                    // pitch: 30
-                  // }
-                // };
-              // var panorama = new google.maps.StreetViewPanorama(
-                // document.getElementById('pano'), panoramaOptions);
-            // } else {
-              // infowindow.setContent('<div>No Street View Found</div>'+content_string);
-            // }
-          // }
-		  // streetViewService.getPanoramaByLocation(position, radius, getStreetView);
+				
+			 
+			 console.log(content_string);
+			 
+
+          // Use streetview service to get the closest streetview image within
+          // 50 meters of the markers position
+        
+			 
+			  
+			 
 			infoWindows.push(infowindow);
+			
+generic_marker.addListener('click',function()
+{
+	
+				   var streetViewService = new google.maps.StreetViewService();
+          var radius = 50;
+          // In case the status is OK, which means the pano was found, compute the
+          // position of the streetview image, then calculate the heading, then get a
+          // panorama from that and set the options
+          function getStreetView(data, status) {
+            if (status == google.maps.StreetViewStatus.OK) {
+              var nearStreetViewLocation = data.location.latLng;
+              var heading = google.maps.geometry.spherical.computeHeading(
+                nearStreetViewLocation, generic_marker.position);
+					
+					//infowindow.setContent(content_string);
+					
+                var panoramaOptions = {
+                  position: nearStreetViewLocation,
+                  pov: {
+                    heading: heading,
+                    pitch: 30
+                  }
+                };
+              var panorama = new google.maps.StreetViewPanorama(
+                document.getElementById('pano'), panoramaOptions);
+            } else {
+              infowindow.setContent('<div>No Street View Found</div>'+content_string);
+            }
+          }
+		  closeInfoWindows();
+   streetViewService.getPanoramaByLocation(generic_marker.position, radius, getStreetView);
+  infowindow.open(map,generic_marker);	
+});
+			
 	  }
 	  
+	  
+	  
+	  
+
+		
+
+		
+		
 		//function to update the position of generic marker
 	updateMarker= function(position,map)
 	{
+
            generic_marker.setPosition(position);
 			generic_marker.setMap(map) ;
 			bounds.extend(generic_marker.position);
 			genericSet=1;
-			generic_marker.addListener('click',
-			function(){
+			// function(){
 	
-				infowindow.open(map, generic_marker);
-				// bounds.extend(infowindow);
-			});
-	}
+				// infowindow.open(map, generic_marker);
+				// // bounds.extend(infowindow);
+			// });
+	};
 	
 	closeInfoWindows= function() {
 	
@@ -509,7 +591,7 @@ var position; // global , generic markers position
 				{
 					infoWindows[i].close();
 				}
-	}
+	};
 	
 	//adding distance matrix
 	// distance_time= function(marker_position,marker){
@@ -595,7 +677,9 @@ set= function(value)
 	prev= value;
 	return set;
 }
-	
+	$("input[type='text']").on("click", function () {
+   $(this).select();
+});
 	
 };
 

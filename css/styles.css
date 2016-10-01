@@ -18,8 +18,7 @@
 }
 
 .input {
-	margin: 10px;
-	margin-right:0;
+	margin: 10px 0;
 	width: 90%;
 }
 
@@ -34,6 +33,9 @@
 	width: 10%;
 	height: 10%;
 	margin-top: 10px;
+	margin-left: 0;
+	font-size:14px;
+	text-align: left;
 }
 
 #zoom-btn: hover {
@@ -45,16 +47,17 @@
 #map {
 	
 	width: 75%;
-	height:95vh;
+	height: 95vh;
 	
 }
 
 
 #side-bar {
 	
-	background-color: #fff;
+	background-color: #33c;
 	width: 25%;
-	height: 500px;
+	height: 95vh;
+	overflow: auto;
 }
 
 .filter-btn {
@@ -72,7 +75,14 @@
 	
 }
 
+.radio-holder {
+	display: flex;
+	flex-wrap: wrap;
+}
 
+.distance-radio {
+	width: 40%;
+}
 
 
 
@@ -81,4 +91,35 @@
 	width: 80%;
 	margin : 0 auto;
 	
+}
+
+
+.list-filter {
+	width: 90%;
+	border: 0.5px solid black;
+	list-style: none ;
+	box-shadow: 8px 8px 5px #3d3d5c;	
+	background-color:  #e6e6ff;
+	margin-top: 10px;
+	
+}
+
+.filter_item {
+	border-bottom: 5px;
+}
+
+.filter_item:hover {
+	color: #f66;
+	transform: scale(1,1.2);
+	cursor: pointer;
+	background-color: rgba(204, 204, 255,0.5);
+	
+}
+
+.button-holder {
+
+	display: block;
+	margin: 10px ;
+	margin-left: 30%;
+	border-left: 30%;
 }
