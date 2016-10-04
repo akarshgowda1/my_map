@@ -529,7 +529,7 @@ var myViewModel = function() {
             // map zooms out suddenly some times this avoids it
             zoomChangeBoundsListener = google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
                 if (this.getZoom() < 10) {
-                    this.setZoom(12); // if zoom out happens when bounds change zoom in again 
+                    this.setZoom(13); // if zoom out happens when bounds change zoom in again 
                     this.setCenter(generic_marker.position); // so that even when map redirects when we reset zoom , center doesnt change
 
                 }
@@ -608,7 +608,7 @@ var myViewModel = function() {
             // map zooms out suddenly some times this avoids it
             zoomChangeBoundsListener = google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
                 if (this.getZoom() < 10) {
-                    this.setZoom(12); // if zoom out happens when bounds change zoom in again 
+                    this.setZoom(13); // if zoom out happens when bounds change zoom in again 
                     this.setCenter(generic_marker.position); // so that even when map redirects when we reset zoom , center doesnt change
 
                 }
