@@ -1,5 +1,5 @@
 var model = {
-    filter_list: ko.observableArray([{
+    filter_list: [{
         filter: 'restaurant'
     }, {
         filter: 'hospital'
@@ -9,8 +9,8 @@ var model = {
         filter: 'cafe'
     }, {
         filter: 'all'
-    }]),
-    fav_list: ko.observableArray([{
+    }],
+    fav_list: [{
         fav: 'Dominos'
     }, {
         fav: 'Barista'
@@ -18,8 +18,8 @@ var model = {
         fav: 'pizza'
     }, {
         fav: 'ice cream'
-    }]),
-    distance: ko.observableArray([{
+    }],
+    distance:[{
         value: 500,
         distance: '0.5kms'
     }, {
@@ -31,8 +31,7 @@ var model = {
     }, {
         value: 10000,
         distance: '10kms'
-    }]),
-    check: ko.observable(1000)
+    }],
 
 };
 
@@ -174,7 +173,7 @@ var model = {
                                 place = map.getCenter();
                             }
 
-                            if (results[i].opening_hours) {
+                            if (results[i].name) {
                                 name = results[i].name;
                             } else {
                                 name = typeRequest.query;
@@ -186,7 +185,7 @@ var model = {
                                 open_now = "no Information";
                             }
 
-                            if (results[i].opening_hours) {
+                            if (results[i].rating) {
                                 rating = results[i].rating;
                             } else {
                                 rating = "no Information";
@@ -372,7 +371,7 @@ var model = {
                     if (response.rows[0].elements[0].status == "OK") //cross check so that there are no zero_results 
                     {
                         var distance = response.rows[0].elements[0].distance.value; //distance from the origin
-                        (distance < model.check()) ? done = true: done = false;
+                        (distance < this.check()) ? done = true: done = false;
                         if (done) {
                             createMarker_fav(marker_position, name, open_now, rating, distance);
                         }
@@ -386,6 +385,7 @@ var model = {
 
 
 var myViewModel = function() {
+		var self=this;
     show_filter = ko.observable(false);
     show_fav = ko.observable(false);
     place = ko.observable("");
@@ -395,18 +395,11 @@ var myViewModel = function() {
     show_distance = ko.observable(false);
     mapError = ko.observable(false);
     initialAddress = ko.observable("Melbourne, Victoria, Australia");
-	
-
-    //function that makes the search  items selected appear
-    toggle_selected = function() {
-        if (place_set()) {
-            show_fav(false);
-
-        } else {
-            place_set(true);
-
-        }
-    };
+	filter_list=ko.observableArray(model.filter_list);
+	distance_filter=ko.observableArray(model.distance);
+	fav_list=ko.observableArray(model.fav_list);
+	check=ko.observable(1000);
+	map_loaded=ko.observable(false);
 
 
     /* function that makes the list of  favourites when the favourite button is clicked*/
@@ -462,14 +455,21 @@ var myViewModel = function() {
     });
 
 	
-	var self=this;
-	
 	find=function()
 	{
             fav_selected("None");
             custom_fav("");
-            model.check(1000);
+            check(1000);
             geocodeAddress(geocoder, map, 1);
+			
+			 // makes the search  items selected appear
+        if (place_set()) {
+            show_fav(false);
+
+        } else {
+            place_set(true);
+
+        }
 
 	}
 	
@@ -513,6 +513,7 @@ var myViewModel = function() {
         }
 		
 		createMarker=function (place, value) {
+			console.log(place);
             var icon = "images/" + value + ".png"; //set icon based on the filter
             var placeLoc = place.geometry.location;
             var marker = new google.maps.Marker({
@@ -537,9 +538,30 @@ var myViewModel = function() {
             setTimeout(function() {
                 google.maps.event.removeListener(zoomChangeBoundsListener);
             }, 10000); // remove the listener after 10 seconds
+			
+			var placeLoc,open_now,rating;
+			     if (place.geometry.location) {
+                                placeLoc = place.geometry.location;
+                            } else {
+                                placeLoc = map.getCenter();
+                            }
+                            if (place.opening_hours) {
+                                open_now = place.opening_hours.open_now;
+                            } else {
+                                open_now = "no Information";
+                            }
+
+                            if (place.opening_hours) {
+                                rating = place.rating;
+                            } else {
+                                rating = "no Information";
+                            }
 
             var infowindow = new google.maps.InfoWindow({
-                content: '<h4>' + place.types + '</h4>' + '<br><p>' + place.name + '</p>'
+                content: '<div><p><strong>Type: </strong>' + place.types + 
+						'<br><strong>Name: </strong>' + place.name +
+						'<br><strong>Open Now: </strong>'+open_now+
+						'<br><strong>Rating: </strong>'+rating+'</p></div>'
             });
             infoWindows.push(infowindow);
 
@@ -552,6 +574,8 @@ var myViewModel = function() {
                 infowindow.open(map, marker);
             });
         }
+		
+		
 
 		createMarker_fav=function (place, name, open_now, rating, distance) {
 
@@ -580,6 +604,7 @@ var myViewModel = function() {
             markers.push(marker);
             map.fitBounds(bounds);
             infoWindows.push(infowindow);
+			
             // map zooms out suddenly some times this avoids it
             zoomChangeBoundsListener = google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
                 if (this.getZoom() < 10) {
@@ -611,6 +636,7 @@ var myViewModel = function() {
             generic_marker.setMap(map);
             bounds.extend(generic_marker.position);
             genericSet = 1;
+			map_loaded(true);
         };
 
 		//close info windows
